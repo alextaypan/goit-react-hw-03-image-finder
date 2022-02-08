@@ -2,12 +2,11 @@ import "./App.css";
 import { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SimpleReactLightbox from "simple-react-lightbox";
 import { fetchImages } from "./services/PixabayAPI";
 import { Searchbar } from "./components/Searchbar/Searchbar";
 import { ImageGallery } from "./components/ImageGallery/ImageGallery";
 import { LoadMoreBtn } from "./components/LoadMoreBtn/LoadMoreBtn";
-// import { Modal } from "./components/Modal/Modal";
+import { Modal } from "./components/Modal/Modal";
 import { Loader } from "./components/Loader/Loader";
 
 class App extends Component {
@@ -37,28 +36,29 @@ class App extends Component {
 
     this.setState({ error: null });
 
-    fetchImages(query, page, perPage).then(({ hits, totalHits }) => {
-      const totalPages = Math.ceil(totalHits / perPage);
+    fetchImages(query, page, perPage)
+      .then(({ hits, totalHits }) => {
+        const totalPages = Math.ceil(totalHits / perPage);
 
-      if (hits.length === 0) {
-        return toast.error("Sorry, no images found. Please, try again!");
-      }
+        if (hits.length === 0) {
+          return toast.error("Sorry, no images found. Please, try again!");
+        }
 
-      if (page === 1) {
-        toast.success(`Wow! We found ${totalHits} images.`);
-      }
+        if (page === 1) {
+          toast.success(`Wow! We found ${totalHits} images.`);
+        }
 
-      if (page === totalPages) {
-        toast.info("We're sorry, you've reached the end of search results.");
-      }
+        if (page === totalPages) {
+          toast.info("We're sorry, you've reached the end of search results.");
+        }
 
-      this.setState((prevState) => ({
-        images: [...prevState.images, ...hits],
-        total: totalHits,
-      }))
-        .catch((error) => this.setState({ error }))
-        .finally(() => this.setState({ isLoading: false }));
-    });
+        this.setState((prevState) => ({
+          images: [...prevState.images, ...hits],
+          total: totalHits,
+        }));
+      })
+      .catch((error) => this.setState({ error: error.message }))
+      .finally(() => this.setState({ isLoading: false }));
   };
 
   changeSearch = (query) => {
@@ -77,10 +77,19 @@ class App extends Component {
   };
 
   render() {
-    const { images, error, isLoading, query, total } = this.state;
-    const lastPage = images.length !== total;
+    const {
+      images,
+      error,
+      isLoading,
+      query,
+      total,
+      isOpenModal,
+      largeImageURL,
+      tags,
+    } = this.state;
+    const lastPage = images.length !== total && images.length !== 0;
     return (
-      <SimpleReactLightbox>
+      <>
         <ToastContainer theme="colored" autoClose={2000} />
         <Searchbar changeSearch={this.changeSearch} />
         {error ? (
@@ -96,8 +105,12 @@ class App extends Component {
             )}
           </>
         )}
-        {/* {isOpenModal && <Modal onClose={this.switchModal} />} */}
-      </SimpleReactLightbox>
+        {isOpenModal && (
+          <Modal onClose={this.switchModal}>
+            <img src={largeImageURL} alt={tags} />
+          </Modal>
+        )}
+      </>
     );
   }
 }
