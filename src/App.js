@@ -34,7 +34,7 @@ class App extends Component {
     const { query, page } = this.state;
     const perPage = 12;
 
-    this.setState({ error: null });
+    this.setState({ error: null, isLoading: true });
 
     fetchImages(query, page, perPage)
       .then(({ hits, totalHits }) => {
